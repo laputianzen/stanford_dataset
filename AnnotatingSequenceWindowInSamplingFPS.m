@@ -221,6 +221,9 @@ correctedEvent = [];
 %         else
         set(source,'ForegroundColor',color);
         h = imrect(ax);
+        % Specify a position constraint to imrect
+        fcn = makeConstrainToRectFcn('imrect',get(gca,'XLim'),get(gca,'YLim'));
+        setPositionConstraintFcn(h,fcn); 
         if ~isempty(h) % we plot a bbox
             setColor(h,color);
             temp_pos = round(wait(h));
