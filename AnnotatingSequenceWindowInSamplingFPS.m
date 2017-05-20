@@ -64,16 +64,40 @@ correctedEvent = [];
         'Position', [0.9 0.150 0.075 0.075],...
         'Callback', {@jumpToNewFrame,{btn_Ball,btn_Basket,btn_BackBoard}});
     % Create push button
+%     btn_Skip = uicontrol('Style', 'pushbutton', 'Units', 'Normalized', 'String', 'skip this event',...
+%         'Position', [0.825 0.110 0.075 0.0325],...
+%         'Callback', @jumpToNewVideo);
     btn_Skip = uicontrol('Style', 'pushbutton', 'Units', 'Normalized', 'String', 'skip this event',...
-        'Position', [0.825 0.110 0.075 0.0325],...
+        'Position', [0.9 0.0675 0.075 0.0325],...
         'Callback', @jumpToNewVideo);
     btn_Rewind = uicontrol('Style', 'pushbutton', 'Units', 'Normalized', 'String', 'rewind',...
         'Position', [0.9 0.110 0.075 0.0325],...
         'Callback', @Rewind);   
     % Create push button
-    btn_LocStartBallTime = uicontrol('Style', 'pushbutton', 'Units', 'Normalized', 'String', 'Locate Time',...
-        'Position', [0.9 0.025 0.075 0.075],...
-        'Callback', @LocateBallPosTime);    
+%     btn_LocStartBallTime = uicontrol('Style', 'pushbutton', 'Units', 'Normalized', 'String', 'Locate Time',...
+%         'Position', [0.9 0.025 0.075 0.075],...
+%         'Callback', @LocateBallPosTime);
+% %     btn_Prev = uicontrol('Style','pushbutton','Units','Normalized','String','a',...
+% %         'Position',[0.9 0.0625 0.022 0.0375],...
+% %         'Callback',@hPrevDigitButtonCallback);
+% %     btn_Now = uicontrol('Style','pushbutton','Units','Normalized','String','b',...
+% %         'Position',[0.9265 0.0625 0.022 0.0375],...
+% %         'Callback',@hPrevDigitButtonCallback); 
+% %     btn_Next = uicontrol('Style','pushbutton','Units','Normalized','String','c',...
+% %         'Position',[0.953 0.0625 0.022 0.0375],...
+% %         'Callback',@hPrevDigitButtonCallback); 
+    btn_Prev = uicontrol('Style','pushbutton','Units','Normalized','String','<',...
+        'Position',[0.825 0.110 0.02 0.0325],...
+        'Callback',@hPrevFrameButtonCallback);
+    btn_Now = uicontrol('Style','pushbutton','Units','Normalized','String','0',...
+        'Position',[0.8475 0.110 0.02 0.0325],...
+        'Callback',@hNowFrameButtonCallback); 
+    btn_Next = uicontrol('Style','pushbutton','Units','Normalized','String','>',...
+        'Position',[0.87 0.110 0.02 0.0325],...
+        'Callback',@hNextFrameButtonCallback);     
+    
+    
+    
     btn_Terminate = uicontrol('Style', 'pushbutton', 'Units', 'Normalized', 'String', 'exit',...
         'Position', [0.945 0.235 0.030 0.0325],'ForegroundColor','red',...
         'Callback', @Terminate);      
@@ -365,6 +389,8 @@ correctedEvent = [];
         % case 2
 %         freezeTime = freezeTime + frame_interval;
 %         vidObj.CurrentTime = freezeTime;
+
+        tPointer = find(abs(timeStamp-freezeTime) < 0.1/vidObj.FrameRate);
         videoFrame = readFrame(vidObj);
         figure(f);
         image(videoFrame, 'Parent', ax);
@@ -380,7 +406,8 @@ correctedEvent = [];
 %             plot(ax,x,y,'md');
 %             hold off;
 %         end
-        
+
+        set(btn_Now,'String',int2str(0),'ForegroundColor','black');
         if counter == frameNum
             source.String = 'finish';
             source.ForegroundColor = 'blue';
@@ -439,6 +466,82 @@ correctedEvent = [];
 %             hold off;
 %         end                        
     end
+
+    function hPrevFrameButtonCallback(source,event)
+        if tPointer ~= 1 
+            set(btn_Ball,'Enable','off');
+            set(btn_Basket,'Enable','off');
+            set(btn_BackBoard,'Enable','off');
+
+            tPointer = tPointer - 1;
+            videoFrame = mov(tPointer).cdata;
+            image(videoFrame, 'Parent', ax);
+            DrawStartBallPos(ax,cbox_StartBallPos,basketballPos,videoFrame);
+            
+            offset = str2num(get(btn_Now,'String'));
+            offset = offset - 1;
+            
+            if offset < 0
+                offsetString = int2str(offset); 
+                set(btn_Now,'ForegroundColor','blue');
+            elseif offset > 0
+                offsetString = ['+' int2str(offset)]; 
+                set(btn_Now,'ForegroundColor','green');
+            else
+                offsetString = int2str(offset); 
+                set(btn_Now,'ForegroundColor','black');
+                set(btn_Ball,'Enable','on');
+                set(btn_Basket,'Enable','on');
+                set(btn_BackBoard,'Enable','on');                
+            end
+            set(btn_Now,'String',offsetString);
+        end
+    end
+
+    function hNowFrameButtonCallback(source,event)
+        set(btn_Ball,'Enable','on');
+        set(btn_Basket,'Enable','on');
+        set(btn_BackBoard,'Enable','on');
+        
+        tPointer = find(abs(timeStamp-freezeTime) < 0.1/vidObj.FrameRate);
+        %tPointer = find(ismember(timeStamp,freezeTime));
+        videoFrame = mov(tPointer).cdata;
+        image(videoFrame, 'Parent', ax);
+        DrawStartBallPos(ax,cbox_StartBallPos,basketballPos,videoFrame);
+        
+        set(btn_Now,'String','0','ForegroundColor','black');
+    end
+
+    function hNextFrameButtonCallback(source,event)
+        if tPointer ~= length(timeStamp)
+            set(btn_Ball,'Enable','off');
+            set(btn_Basket,'Enable','off');
+            set(btn_BackBoard,'Enable','off');
+
+            tPointer = tPointer + 1;
+            videoFrame = mov(tPointer).cdata;
+            image(videoFrame, 'Parent', ax);
+            DrawStartBallPos(ax,cbox_StartBallPos,basketballPos,videoFrame);
+
+            offset = str2num(get(btn_Now,'String'));
+            offset = offset + 1;
+            
+            if offset < 0 
+                offsetString = int2str(offset); 
+                set(btn_Now,'ForegroundColor','blue');
+            elseif offset > 0
+                offsetString = ['+' int2str(offset)]; 
+                set(btn_Now,'ForegroundColor','green');
+            else
+                offsetString = int2str(offset); 
+                set(btn_Now,'ForegroundColor','black');
+                set(btn_Ball,'Enable','on');
+                set(btn_Basket,'Enable','on');
+                set(btn_BackBoard,'Enable','on');                
+            end
+            set(btn_Now,'String',offsetString);
+        end
+    end
     
     function Rewind(source,event)
         if strcmp(source.String,'rewind')
@@ -491,6 +594,9 @@ end
 %         plot(ax,x,y,'md');
 %         hold off;
 %     end
+    [mov,timeStamp] = ReadVideoFrames(vidObj,oneVideoBboxTimeStamps(1),oneVideoBboxTimeStamps(end));
+    %tPointer = find(ismember(timeStamp,freezeTime));
+    tPointer = find(abs(timeStamp-freezeTime) < 0.1/vidObj.FrameRate);
     
     while ~valid_processed && ~gui_release
         uiwait(f);
@@ -567,5 +673,18 @@ geTopEdge = (basketballPos(2) >= ballBboxPos(2) - ballBboxPos(4)/2);
 leBottomEdge= (basketballPos(2) <= (ballBboxPos(2)+ ballBboxPos(4)*3/2));
 
 val = geLeftEdge && leRightEdge && geTopEdge && leBottomEdge;
+
+end
+
+function [mov,time] = ReadVideoFrames(vidObj,startTimeInSecond,endTimeInSecond)
+k = 1;
+vidObj.CurrentTime = startTimeInSecond;
+while hasFrame(vidObj) && vidObj.CurrentTime <= endTimeInSecond
+    %time(k) = vidObj.CurrentTime; % read first frame will not change
+    %current time 
+    mov(k).cdata = readFrame(vidObj);
+    time(k) = vidObj.CurrentTime;
+    k = k+1;
+end
 
 end
