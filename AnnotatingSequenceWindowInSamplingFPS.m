@@ -40,6 +40,7 @@ timeTableTxt = [outVidFilePath(1:(strfind(outVidFilePath,'img')-1)) 'timeTable.t
 flagLocate = 0;
 gui_release = 0;
 correctedEvent = [];
+framePerInterval = round((oneVideoBboxTimeStamps(2)-oneVideoBboxTimeStamps(1))*vidObj.FrameRate);
 % create gui
     % Create a figure and axes
     f = figure('Visible','on','Units','Normalized');
@@ -338,9 +339,9 @@ correctedEvent = [];
             hFigTemp = figure('Visible','off');           
             imshow(frame,'border','tight');
             hold on;
-            drawBoundBoxOnImage(hFigTemp,ball_position(counter,:),'magenta');
-            drawBoundBoxOnImage(hFigTemp,basket_position(counter,:),'cyan');
-            drawBoundBoxOnImage(hFigTemp,backboard_position(counter,:),'yellow');
+            drawBoundBoxOnImage(hFigTemp.CurrentAxes,ball_position(counter,:),'magenta');
+            drawBoundBoxOnImage(hFigTemp.CurrentAxes,basket_position(counter,:),'cyan');
+            drawBoundBoxOnImage(hFigTemp.CurrentAxes,backboard_position(counter,:),'yellow');
             hold off;
             hFigTemp.Visible = 'on';
             frame = getframe(hFigTemp);
@@ -477,9 +478,17 @@ correctedEvent = [];
             videoFrame = mov(tPointer).cdata;
             image(videoFrame, 'Parent', ax);
             DrawStartBallPos(ax,cbox_StartBallPos,basketballPos,videoFrame);
+                     
             
             offset = str2num(get(btn_Now,'String'));
             offset = offset - 1;
+            
+            cPointer = DrawBBoxOrNot(counter,offset,framePerInterval);
+            if ~isempty(cPointer)
+                drawBoundBoxOnImage(ax,ball_position(cPointer,:),'magenta');
+                drawBoundBoxOnImage(ax,basket_position(cPointer,:),'cyan');
+                drawBoundBoxOnImage(ax,backboard_position(cPointer,:),'yellow');
+            end              
             
             if offset < 0
                 offsetString = int2str(offset); 
@@ -490,9 +499,11 @@ correctedEvent = [];
             else
                 offsetString = int2str(offset); 
                 set(btn_Now,'ForegroundColor','black');
-                set(btn_Ball,'Enable','on');
-                set(btn_Basket,'Enable','on');
-                set(btn_BackBoard,'Enable','on');                
+                if isequal(ball_position(cPointer,:),[0 0 0 0])
+                    set(btn_Ball,'Enable','on');
+                    set(btn_Basket,'Enable','on');
+                    set(btn_BackBoard,'Enable','on');
+                end
             end
             set(btn_Now,'String',offsetString);
         end
@@ -509,6 +520,16 @@ correctedEvent = [];
         image(videoFrame, 'Parent', ax);
         DrawStartBallPos(ax,cbox_StartBallPos,basketballPos,videoFrame);
         
+        cPointer = DrawBBoxOrNot(counter,0,framePerInterval);
+        if ~isempty(cPointer)
+            drawBoundBoxOnImage(ax,ball_position(cPointer,:),'magenta');
+            drawBoundBoxOnImage(ax,basket_position(cPointer,:),'cyan');
+            drawBoundBoxOnImage(ax,backboard_position(cPointer,:),'yellow');
+            set(btn_Ball,'Enable','off');
+            set(btn_Basket,'Enable','off');
+            set(btn_BackBoard,'Enable','off');
+        end        
+        
         set(btn_Now,'String','0','ForegroundColor','black');
     end
 
@@ -522,9 +543,16 @@ correctedEvent = [];
             videoFrame = mov(tPointer).cdata;
             image(videoFrame, 'Parent', ax);
             DrawStartBallPos(ax,cbox_StartBallPos,basketballPos,videoFrame);
-
+            
             offset = str2num(get(btn_Now,'String'));
             offset = offset + 1;
+
+            cPointer = DrawBBoxOrNot(counter,offset,framePerInterval);
+            if ~isempty(cPointer)
+                drawBoundBoxOnImage(ax,ball_position(cPointer,:),'magenta');
+                drawBoundBoxOnImage(ax,basket_position(cPointer,:),'cyan');
+                drawBoundBoxOnImage(ax,backboard_position(cPointer,:),'yellow');
+            end            
             
             if offset < 0 
                 offsetString = int2str(offset); 
@@ -533,13 +561,16 @@ correctedEvent = [];
                 offsetString = ['+' int2str(offset)]; 
                 set(btn_Now,'ForegroundColor','green');
             else
-                offsetString = int2str(offset); 
+                offsetString = int2str(offset);
                 set(btn_Now,'ForegroundColor','black');
-                set(btn_Ball,'Enable','on');
-                set(btn_Basket,'Enable','on');
-                set(btn_BackBoard,'Enable','on');                
+                if isequal(ball_position(cPointer,:),[0 0 0 0])
+                    set(btn_Ball,'Enable','on');
+                    set(btn_Basket,'Enable','on');
+                    set(btn_BackBoard,'Enable','on');
+                end
             end
             set(btn_Now,'String',offsetString);
+            
         end
     end
     
@@ -612,10 +643,11 @@ function SavePositionTxt(TrackingTxt,position)
     fclose(fileID);
 end
 
-function drawBoundBoxOnImage(fig,position,color)
+function drawBoundBoxOnImage(ax,position,color)
     if ~isequal(position,[0 0 0 0])
-        figure(fig)
-        rectangle('Position', position,'EdgeColor',color);
+        %figure(fig)
+        axes(ax)
+        rectangle('Position', position,'EdgeColor',color,'LineWidth',2);
         %h = imrect(gca,position);
         %setColor(h,color);
     end   
@@ -688,3 +720,12 @@ while hasFrame(vidObj) && vidObj.CurrentTime <= endTimeInSecond
 end
 
 end
+
+function cPointer = DrawBBoxOrNot(counter,tPointer,framePerInterval)
+    cPointer = [];
+    if mod(tPointer,framePerInterval) == 0
+        relativeCount = tPointer/framePerInterval;
+        cPointer = counter + relativeCount;
+    end        
+end
+
