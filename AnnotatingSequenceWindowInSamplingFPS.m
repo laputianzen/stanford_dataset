@@ -40,7 +40,7 @@ timeTableTxt = [outVidFilePath(1:(strfind(outVidFilePath,'img')-1)) 'timeTable.t
 flagLocate = 0;
 gui_release = 0;
 correctedEvent = [];
-framePerInterval = round((oneVideoBboxTimeStamps(2)-oneVideoBboxTimeStamps(1))*vidObj.FrameRate);
+framePerInterval = round(mode(oneVideoBboxTimeStamps(2:end)-oneVideoBboxTimeStamps(1:end-1))*vidObj.FrameRate);
 % create gui
     % Create a figure and axes
     f = figure('Visible','on','Units','Normalized');
