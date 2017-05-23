@@ -711,11 +711,19 @@ end
 function [mov,time] = ReadVideoFrames(vidObj,startTimeInSecond,endTimeInSecond)
 k = 1;
 vidObj.CurrentTime = startTimeInSecond;
+% get frame time sequence proper aligned event startTime is not precise time stamp in vidObj time stamps
 while hasFrame(vidObj) && vidObj.CurrentTime <= endTimeInSecond
-    %time(k) = vidObj.CurrentTime; % read first frame will not change
-    %current time 
     mov(k).cdata = readFrame(vidObj);
-    time(k) = vidObj.CurrentTime;
+    if k == 1
+       %if vidObj.CurrentTime == startTimeInSecond
+       if (vidObj.CurrentTime - startTimeInSecond )< 0.1/vidObj.FrameRate
+           time(k) = vidObj.CurrentTime;
+       else
+           time(k) = vidObj.CurrentTime - 1/vidObj.FrameRate;
+       end
+    else
+       time(k) = time(k-1) + 1/vidObj.FrameRate;
+    end
     k = k+1;
 end
 
