@@ -40,7 +40,8 @@ timeTableTxt = [outVidFilePath(1:(strfind(outVidFilePath,'img')-1)) 'timeTable.t
 flagLocate = 0;
 gui_release = 0;
 correctedEvent = [];
-framePerInterval = round(mode(oneVideoBboxTimeStamps(2:end)-oneVideoBboxTimeStamps(1:end-1))*vidObj.FrameRate);
+sampleIntervals = oneVideoBboxTimeStamps(2:end)-oneVideoBboxTimeStamps(1:end-1);
+framePerInterval = round(sampleIntervals*vidObj.FrameRate);
 % create gui
     % Create a figure and axes
     f = figure('Visible','on','Units','Normalized');
@@ -730,10 +731,11 @@ end
 end
 
 function cPointer = DrawBBoxOrNot(counter,tPointer,framePerInterval)
-    cPointer = [];
-    if mod(tPointer,framePerInterval) == 0
-        relativeCount = tPointer/framePerInterval;
-        cPointer = counter + relativeCount;
-    end        
+    mileStoneIdx = [0; zeros(size(framePerInterval)) + cumsum(framePerInterval)];
+    relativeIdx = mileStoneIdx - mileStoneIdx(counter);
+    cPointer = [];    
+    if sum(ismember(relativeIdx ,tPointer))
+        cPointer = find(ismember(relativeIdx,tPointer));
+    end       
 end
 
