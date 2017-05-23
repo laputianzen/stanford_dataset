@@ -522,7 +522,7 @@ framePerInterval = round(sampleIntervals*vidObj.FrameRate);
         DrawStartBallPos(ax,cbox_StartBallPos,basketballPos,videoFrame);
         
         cPointer = DrawBBoxOrNot(counter,0,framePerInterval);
-        if ~isempty(cPointer)
+        if ~isequal(ball_position(cPointer,:),[0 0 0 0])
             drawBoundBoxOnImage(ax,ball_position(cPointer,:),'magenta');
             drawBoundBoxOnImage(ax,basket_position(cPointer,:),'cyan');
             drawBoundBoxOnImage(ax,backboard_position(cPointer,:),'yellow');
