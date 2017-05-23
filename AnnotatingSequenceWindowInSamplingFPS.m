@@ -61,9 +61,9 @@ framePerInterval = round(mode(oneVideoBboxTimeStamps(2:end)-oneVideoBboxTimeStam
         'Position', [0.825 0.275 0.15 0.075],...
         'Callback', {@DrawBBox,'yellow'});
     % Create push button
-    btn_Finish = uicontrol('Style', 'pushbutton', 'Units', 'Normalized', 'String', 'next frame',...
+    btn_Finish = uicontrol('Style', 'pushbutton', 'Units', 'Normalized', 'String', 'next sample',...
         'Position', [0.9 0.150 0.075 0.075],...
-        'Callback', {@jumpToNewFrame,{btn_Ball,btn_Basket,btn_BackBoard}});
+        'Callback', {@jumpToNewSample,{btn_Ball,btn_Basket,btn_BackBoard}});
     % Create push button
 %     btn_Skip = uicontrol('Style', 'pushbutton', 'Units', 'Normalized', 'String', 'skip this event',...
 %         'Position', [0.825 0.110 0.075 0.0325],...
@@ -313,7 +313,7 @@ framePerInterval = round(mode(oneVideoBboxTimeStamps(2:end)-oneVideoBboxTimeStam
         %colormap(newmap);
     end
 
-    function jumpToNewFrame(source,event,annotateBtns)
+    function jumpToNewSample(source,event,annotateBtns)
         if get(cbox_SaveLabelImage,'Value')
             labelFolder = [outVidFilePath(1:(strfind(outVidFilePath,'img')-1)) filesep 'label'];
             if ~exist(labelFolder,'dir')
