@@ -10,7 +10,7 @@ counter = 1;
 % oneVideoBbox time stamp might smaller than actual time interval frame
 % number
 % case 1: frame from pre-label player bbox time stamp frame number
-   frameNum = size(oneVideoBboxTimeStamps,1);
+   sampleNum = size(oneVideoBboxTimeStamps,1);
 % case 2: get frame number from times between event interval and frame
    %frame_interval = oneVideoBboxTimeStamps(2)-oneVideoBboxTimeStamps(1);
    %frameNum = round((endTimeInSecond - startTimeInSecond)/frame_interval);
@@ -19,9 +19,9 @@ counter = 1;
 % basket_position = zeros(size(oneVideoBboxTimeStamps,1),4);
 % backboard_position = zeros(size(oneVideoBboxTimeStamps,1),4);
 
-ball_position = zeros(frameNum,4);
-basket_position = zeros(frameNum,4);
-backboard_position = zeros(frameNum,4);
+ball_position = zeros(sampleNum,4);
+basket_position = zeros(sampleNum,4);
+backboard_position = zeros(sampleNum,4);
 
 ballTrackingTxt = [outVidFilePath(1:(strfind(outVidFilePath,'img')-1)) 'ball_ground_truth.txt'];
 valid_processed = 0;
@@ -355,7 +355,7 @@ mileStoneIdx = [1; ones(size(framePerInterval)) + cumsum(framePerInterval)];
 %             end
         end
         counter = counter + 1;
-        if counter > frameNum
+        if counter > sampleNum
             if ~isempty(correctedEvent)
                 % Construct a questdlg with three options
                 choice = questdlg('Are you sure to change event?', ...
@@ -368,7 +368,7 @@ mileStoneIdx = [1; ones(size(framePerInterval)) + cumsum(framePerInterval)];
             end
             % save time table 
             fileID = fopen(timeTableTxt,'w');           
-            fprintf(fileID,'%u: %f\n',[(1:frameNum);oneVideoBboxTimeStamps']);
+            fprintf(fileID,'%u: %f\n',[(1:sampleNum);oneVideoBboxTimeStamps']);
             fclose(fileID);  
             
             SavePositionTxt(ballTrackingTxt,ball_position);
@@ -412,7 +412,7 @@ mileStoneIdx = [1; ones(size(framePerInterval)) + cumsum(framePerInterval)];
 %         end
 
         set(btn_Now,'String',int2str(0),'ForegroundColor','black');
-        if counter == frameNum
+        if counter == sampleNum
             source.String = 'finish';
             source.ForegroundColor = 'blue';
         end
