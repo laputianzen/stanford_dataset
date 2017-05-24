@@ -42,6 +42,7 @@ gui_release = 0;
 correctedEvent = [];
 sampleIntervals = oneVideoBboxTimeStamps(2:end)-oneVideoBboxTimeStamps(1:end-1);
 framePerInterval = round(sampleIntervals*vidObj.FrameRate);
+mileStoneIdx = [1; ones(size(framePerInterval)) + cumsum(framePerInterval)];
 % create gui
     % Create a figure and axes
     f = figure('Visible','on','Units','Normalized');
@@ -384,7 +385,7 @@ framePerInterval = round(sampleIntervals*vidObj.FrameRate);
             end
             return
         end
-        mileStoneIdx = [1; ones(size(framePerInterval)) + cumsum(framePerInterval)];
+
         set(edit_frame,'String',int2str(mileStoneIdx(counter)));
         % case 1
         freezeTime = oneVideoBboxTimeStamps(counter);
@@ -485,7 +486,7 @@ framePerInterval = round(sampleIntervals*vidObj.FrameRate);
             offset = str2num(get(btn_Now,'String'));
             offset = offset - 1;
             
-            cPointer = DrawBBoxOrNot(counter,offset,framePerInterval);
+            cPointer = DrawBBoxOrNot(counter,offset,mileStoneIdx);
             if ~isempty(cPointer)
                 drawBoundBoxOnImage(ax,ball_position(cPointer,:),'magenta');
                 drawBoundBoxOnImage(ax,basket_position(cPointer,:),'cyan');
@@ -495,18 +496,22 @@ framePerInterval = round(sampleIntervals*vidObj.FrameRate);
             if offset < 0
                 offsetString = int2str(offset); 
                 set(btn_Now,'ForegroundColor','blue');
+                set(edit_frame,'ForegroundColor','blue');
             elseif offset > 0
                 offsetString = ['+' int2str(offset)]; 
                 set(btn_Now,'ForegroundColor','green');
+                set(edit_frame,'ForegroundColor','green');
             else
                 offsetString = int2str(offset); 
                 set(btn_Now,'ForegroundColor','black');
+                set(edit_frame,'ForegroundColor','black');
                 if isequal(ball_position(cPointer,:),[0 0 0 0])
                     set(btn_Ball,'Enable','on');
                     set(btn_Basket,'Enable','on');
                     set(btn_BackBoard,'Enable','on');
                 end
             end
+            set(edit_frame,'String', int2str(mileStoneIdx(counter)+offset));
             set(btn_Now,'String',offsetString);
         end
     end
@@ -522,7 +527,7 @@ framePerInterval = round(sampleIntervals*vidObj.FrameRate);
         image(videoFrame, 'Parent', ax);
         DrawStartBallPos(ax,cbox_StartBallPos,basketballPos,videoFrame);
         
-        cPointer = DrawBBoxOrNot(counter,0,framePerInterval);
+        cPointer = DrawBBoxOrNot(counter,0,mileStoneIdx);
         if ~isequal(ball_position(cPointer,:),[0 0 0 0])
             drawBoundBoxOnImage(ax,ball_position(cPointer,:),'magenta');
             drawBoundBoxOnImage(ax,basket_position(cPointer,:),'cyan');
@@ -531,7 +536,8 @@ framePerInterval = round(sampleIntervals*vidObj.FrameRate);
             set(btn_Basket,'Enable','off');
             set(btn_BackBoard,'Enable','off');
         end        
-        
+        set(edit_frame,'String', int2str(mileStoneIdx(counter)));
+        set(edit_frame,'ForegroundColor','black');
         set(btn_Now,'String','0','ForegroundColor','black');
     end
 
@@ -549,7 +555,7 @@ framePerInterval = round(sampleIntervals*vidObj.FrameRate);
             offset = str2num(get(btn_Now,'String'));
             offset = offset + 1;
 
-            cPointer = DrawBBoxOrNot(counter,offset,framePerInterval);
+            cPointer = DrawBBoxOrNot(counter,offset,mileStoneIdx);
             if ~isempty(cPointer)
                 drawBoundBoxOnImage(ax,ball_position(cPointer,:),'magenta');
                 drawBoundBoxOnImage(ax,basket_position(cPointer,:),'cyan');
@@ -559,20 +565,23 @@ framePerInterval = round(sampleIntervals*vidObj.FrameRate);
             if offset < 0 
                 offsetString = int2str(offset); 
                 set(btn_Now,'ForegroundColor','blue');
+                set(edit_frame,'ForegroundColor','blue');
             elseif offset > 0
                 offsetString = ['+' int2str(offset)]; 
                 set(btn_Now,'ForegroundColor','green');
+                set(edit_frame,'ForegroundColor','green');
             else
                 offsetString = int2str(offset);
                 set(btn_Now,'ForegroundColor','black');
+                set(edit_frame,'ForegroundColor','black');
                 if isequal(ball_position(cPointer,:),[0 0 0 0])
                     set(btn_Ball,'Enable','on');
                     set(btn_Basket,'Enable','on');
                     set(btn_BackBoard,'Enable','on');
                 end
             end
+            set(edit_frame,'String', int2str(mileStoneIdx(counter)+offset));
             set(btn_Now,'String',offsetString);
-            
         end
     end
     
@@ -731,8 +740,7 @@ end
 
 end
 
-function cPointer = DrawBBoxOrNot(counter,tPointer,framePerInterval)
-    mileStoneIdx = [0; zeros(size(framePerInterval)) + cumsum(framePerInterval)];
+function cPointer = DrawBBoxOrNot(counter,tPointer,mileStoneIdx)
     relativeIdx = mileStoneIdx - mileStoneIdx(counter);
     cPointer = [];    
     if sum(ismember(relativeIdx ,tPointer))
