@@ -378,6 +378,7 @@ mileStoneIdx = [1; ones(size(framePerInterval)) + cumsum(framePerInterval)];
             
             uiresume(f);
             close(f);
+            gui_release = 1;
             if ~isequal(ball_position,zeros(size(oneVideoBboxTimeStamps,1),4))
                 valid_processed = 1;
             else
@@ -643,7 +644,12 @@ end
     while ~valid_processed && ~gui_release
         uiwait(f);
     end
-
+    if ~flagLocate && ~isequal(basketballPos,[-1,-1])
+       specialTimeTxt = [outVidFilePath(1:(strfind(outVidFilePath,'img')-1)) 'locateTime_Alert.txt'];
+       fid = fopen(specialTimeTxt,'w');
+       fclose(fid);
+    end
+   
 end
 
 function SavePositionTxt(TrackingTxt,position)
