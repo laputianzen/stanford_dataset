@@ -384,7 +384,8 @@ framePerInterval = round(sampleIntervals*vidObj.FrameRate);
             end
             return
         end
-        set(edit_frame,'String',int2str(counter));
+        mileStoneIdx = [1; ones(size(framePerInterval)) + cumsum(framePerInterval)];
+        set(edit_frame,'String',int2str(mileStoneIdx(counter)));
         % case 1
         freezeTime = oneVideoBboxTimeStamps(counter);
         vidObj.CurrentTime = oneVideoBboxTimeStamps(counter);
